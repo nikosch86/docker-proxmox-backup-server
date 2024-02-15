@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [[ -n "$TZ" ]]; then
+  echo "$TZ" > /etc/timezone
+fi
+
+# ensure that etc is owned by backup (due to configs)
+chown backup:backup /etc/proxmox-backup
+chmod 700 /etc/proxmox-backup
+
+# ensure that lib is owned by backup (due to jobstates and rrdb)
+chown backup:backup /var/lib/proxmox-backup
+chmod 700 /var/lib/proxmox-backup
+
+# ensure that logs are owned by backup
+chown backup:backup /var/log/proxmox-backup
+chmod 700 /var/log/proxmox-backup
+
+# recycle lock files
+rm /etc/proxmox-backup/.*.lck /etc/proxmox-backup/*.lock
+
+if [[ ! -e /etc/proxmox-backup/csrf.key ]] && [[ ! -e /etc/proxmox-backup/.initialized ]]; then
+  echo 'Copying defaults into `/etc/proxmox-backup/`'
+  cp -rv /etc/proxmox-backup-default/. /etc/proxmox-backup/
+  touch /etc/proxmox-backup/.initialized
+fi
+
+for mp in /etc/proxmox-backup /var/lib/proxmox-backup /var/log/proxmox-backup; do
+  if ! mountpoint "$mp"; then
+    echo "WARNING: The '$mp' should be volume. PBS might not work correctly (data might be lost between runs)."
+  fi
+done
+
+if ! mountpoint /run; then
+  echo "WARNING: The '/run' should be 'tmpfs' mountpoint. PBS might not work correctly."
+fi
+
+echo "API: Starting..."
+exec /usr/lib/*/proxmox-backup/proxmox-backup-api
