@@ -15,3 +15,5 @@ VOLUME /var/lib/proxmox-backup
 EXPOSE 8007
 
 CMD ["runsvdir", "/runit"]
+
+HEALTHCHECK --interval=15s --timeout=10s --retries=3 --start-period=30s CMD curl -kf http://localhost:8007/ || exit 1
