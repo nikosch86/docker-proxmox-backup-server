@@ -1,7 +1,7 @@
 FROM debian:trixie-slim
 
 # Set default PBS version, can be overridden at build time
-ARG PBS_VERSION=4.0.9-1
+ARG PBS_VERSION=4.0.15-1
 
 RUN apt-get update && apt-get -yq install wget tzdata runit
 RUN wget https://enterprise.proxmox.com/debian/proxmox-release-trixie.gpg -O /etc/apt/trusted.gpg.d/proxmox-release.gpg
