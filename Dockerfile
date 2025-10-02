@@ -1,12 +1,18 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 # Set default PBS version, can be overridden at build time
-ARG PBS_VERSION=3.4.1-1
+ARG PBS_VERSION=4.0.9-1
 
 RUN apt-get update && apt-get -yq install wget tzdata runit
-RUN wget https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg -O /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg
-RUN printf '7da6fe34168adc6e479327ba517796d4702fa2f8b4f0a9833f5ea6e6b48f6507a6da403a274fe201595edc86a84463d50383d07f64bdde2e3658108db7d6dc87  /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg' > /checksum && sha512sum -c /checksum
-RUN printf 'deb http://download.proxmox.com/debian/pbs bookworm pbs-no-subscription' > /etc/apt/sources.list.d/pbs.list
+RUN wget https://enterprise.proxmox.com/debian/proxmox-release-trixie.gpg -O /etc/apt/trusted.gpg.d/proxmox-release.gpg
+RUN printf '8678f2327c49276615288d7ca11e7d296bc8a2b96946fe565a9c81e533f9b15a5dbbad210a0ad5cd46d361ff1d3c4bac55844bc296beefa4f88b86e44e69fa51  /etc/apt/trusted.gpg.d/proxmox-release.gpg' > /checksum && sha512sum -c /checksum
+COPY <<"EOT" /etc/apt/sources.list.d/pbs.sources
+Types: deb
+URIs: http://download.proxmox.com/debian/pbs
+Suites: trixie
+Components: pbs-no-subscription
+Signed-By: /etc/apt/trusted.gpg.d/proxmox-release.gpg
+EOT
 RUN apt-get update && apt-get -yq install --no-install-recommends proxmox-backup-server=${PBS_VERSION} proxmox-archive-keyring && apt-get clean && apt-get autoremove && rm -rf /var/lib/apt/lists/*
 
 ADD runit/ /runit/
