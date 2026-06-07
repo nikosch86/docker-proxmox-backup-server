@@ -1,0 +1,33 @@
+services:
+  proxmox-backup-server:
+    image: ghcr.io/nikosch86/docker-proxmox-backup-server:latest
+    container_name: proxmox-backup-server
+    hostname: pbs
+    restart: unless-stopped
+    ports:
+      - "8007:8007"
+    environment:
+      # Set the timezone (written to /etc/timezone by the api run script)
+      - TZ=Etc/UTC
+    volumes:
+      # PBS state -- must be persistent (run script warns if not mountpoints).
+      - pbs-etc:/etc/proxmox-backup
+      - pbs-lib:/var/lib/proxmox-backup
+      - pbs-log:/var/log/proxmox-backup
+      - /srv/pbs-datastore:/datastore   # your datastore(s)
+    tmpfs:
+      - /run   # PBS expects /run to be tmpfs
+
+    # Disk SMART monitoring (Administration > Disks, /nodes/localhost/disks/list).
+    # Not needed for plain backups. smartctl is already in the image; the
+    # container just lacks runtime access, so add all three:
+    #   volumes: - /run/udev:/run/udev:ro   # model/serial/vendor/wwn (from udev)
+    #   devices: - /dev/nvme0n1 ...         # the disks, so smartctl can open them
+    #   cap_add: - SYS_RAWIO                # SATA/SCSI SMART (SG_IO)
+    #            - SYS_ADMIN                # NVMe SMART (admin passthru)
+    # Or replace devices+cap_add with `privileged: true` (still add /run/udev).
+
+volumes:
+  pbs-etc:
+  pbs-lib:
+  pbs-log:
