@@ -1,7 +1,7 @@
 FROM debian:trixie-slim
 
 # Set default PBS version, can be overridden at build time
-ARG PBS_VERSION=4.1.2-1
+ARG PBS_VERSION=4.2.1-1
 
 RUN apt-get update && apt-get -yq --no-install-recommends install ca-certificates wget tzdata runit
 RUN wget https://enterprise.proxmox.com/debian/proxmox-release-trixie.gpg -O /etc/apt/trusted.gpg.d/proxmox-release.gpg
